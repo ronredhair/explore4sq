@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<div ng-app="myApp">
+    <div ng-controller="myCtrl">
+        <div>Busy: {{ isBusy }}</div>
+        <div>Name: {{ name }}</div>
+        <div>Progress: {{ step }}</div>
+    </div>
+</div>
+
+<script src="bower_components/angular/angular.min.js"></script>
+<script>
+    var m = angular.module("myApp", []);
+
+    m.factory("dataService", function ($q, $timeout) {
+        function _callMe() {
+            var d = $q.defer();
+
+            var finish = 0;
+            for(var step = 0; step < 11 ; step++){
+                $timeout(function () {
+                    //d.resolve();
+                    //d.reject();
+                    d.notify((step*10).toString()+' %' );
+                    finish++;
+                }, 200);
+
+            }
+            if (finish >= 10) {
+                d.resolve();
+            } else {
+                d.reject();
+            }
+
+            return d.promise;
+        }
+
+        return {
+            callMe: _callMe
+        };
+    });
+
+    function myCtrl($scope, dataService) {
+        $scope.name = "None";
+        $scope.isBusy = true;
+        $scope.step = 'Starting';
+        dataService.callMe()
+                .then(function () {
+                    // Successful
+                    $scope.name = "success";
+                },
+                function () {
+                    // failure
+                    $scope.name = "failure";
+                },
+                function(progress){
+                    $scope.step = progress;
+                }
+                )
+                .then(function () {
+                    // Like a Finally Clause
+                    $scope.isBusy = false;
+                });
+    }
+</script>
+</body>
+</html>
